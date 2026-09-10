@@ -9,10 +9,10 @@ This reproduction targets the Linux FUSE client. A dependency-free Node.js scrip
 - Linux with Node.js 18 or newer
 - Archil CLI v0.8.35
 - An Archil disk and mount token
-- An existing non-empty file on that disk
+- Permission to copy the included test file onto the disk
 - Root access for mounting and cache invalidation
 
-The script only reads the test file. It does not modify or delete it.
+The scripts only read the test file. They do not modify or delete it.
 
 ## Reproduce
 
@@ -23,12 +23,15 @@ export ARCHIL_MOUNT_TOKEN='<disk-token>'
 sudo --preserve-env=ARCHIL_MOUNT_TOKEN archil mount \
   '<account>/<disk>' /mnt/archil \
   --region aws-us-east-1
+
+sudo cp test-file.txt /mnt/archil/archil-cache-expiry-repro.txt
+sudo sync -f /mnt/archil/archil-cache-expiry-repro.txt
 ```
 
 Run it as root so it can invoke `archil invalidate-cache`:
 
 ```bash
-sudo node reproduce.mjs /mnt/archil/path/to/file.bin
+sudo node reproduce.mjs /mnt/archil/archil-cache-expiry-repro.txt
 ```
 
 It takes approximately 35 seconds. On an affected client, the output resembles:
@@ -46,7 +49,7 @@ Exact timings vary by machine. The signal is that all repeated reads become slow
 
 Normal repeated reads can be served entirely by Linux's page cache and never reach the Archil FUSE process. The program opens the file with:
 
-```c
+```js
 await open(path, constants.O_RDONLY | constants.O_DIRECT)
 ```
 
@@ -57,6 +60,7 @@ For this FUSE filesystem, `O_DIRECT` bypasses Linux's page cache while still exe
 Unmount normally when finished:
 
 ```bash
+sudo rm /mnt/archil/archil-cache-expiry-repro.txt
 sudo archil unmount /mnt/archil
 ```
 
@@ -77,7 +81,7 @@ export ARCHIL_REGION='aws-us-east-1'
 export ARCHIL_DISK_NAME='<account>/<disk>'
 export ARCHIL_MOUNT_TOKEN='<disk-token>'
 
-inode_id=$(stat -c %i /mnt/archil/path/to/file.bin)
+inode_id=$(stat -c %i /mnt/archil/archil-cache-expiry-repro.txt)
 node reproduce-native.mjs "$inode_id"
 ```
 
