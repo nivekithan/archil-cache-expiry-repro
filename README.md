@@ -68,9 +68,7 @@ inode_id=$(stat -c %i /mnt/archil/archil-cache-expiry-repro.txt)
 node reproduce-native.mjs "$inode_id"
 ```
 
-The native reproduction performs the same sequential 8-byte reads through `ArchilClient.readInode()`. It clears only the native client's in-process cache and does not use Linux's page cache.
-
-Observed with `@archildata/native@0.8.35`:
+The native reproduction performs the same sequential 8-byte reads through `ArchilClient.readInode()`. 
 
 ```text
 Fresh cache                              9.72 ms (100 x 8-byte reads)
