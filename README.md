@@ -46,8 +46,7 @@ Linux can serve normal repeated reads entirely from its page cache, so they neve
 ```js
 await open(path, constants.O_RDONLY | constants.O_DIRECT)
 ```
-
-For this FUSE filesystem, `O_DIRECT` bypasses Linux's page cache while still exercising Archil's in-process client cache
+`O_DIRECT` bypasses Linux's page cache while still exercising Archil's in-process client cache
 
 ## Native client reproduction
 
