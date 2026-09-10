@@ -61,3 +61,33 @@ sudo archil unmount /mnt/archil
 ```
 
 Do not use `umount`; Archil's documented `archil unmount` command waits for pending writes to be synchronized.
+
+## Native client reproduction
+
+The same behavior can be reproduced without FUSE reads by using `@archildata/native`. Install the pinned dependency using Node.js 22 or newer:
+
+```bash
+npm install
+```
+
+Set the connection details and obtain the Archil inode ID from the mounted test file:
+
+```bash
+export ARCHIL_REGION='aws-us-east-1'
+export ARCHIL_DISK_NAME='<account>/<disk>'
+export ARCHIL_MOUNT_TOKEN='<disk-token>'
+
+inode_id=$(stat -c %i /mnt/archil/path/to/file.bin)
+node reproduce-native.mjs "$inode_id"
+```
+
+The native reproduction performs the same sequential 8-byte reads through `ArchilClient.readInode()`. It clears only the native client's in-process cache and does not use Linux's page cache.
+
+Observed with `@archildata/native@0.8.35`:
+
+```text
+Fresh cache                              9.72 ms (100 x 8-byte reads)
+Waiting 32s for page expiry...
+After expiry                            74.68 ms (100 x 8-byte reads)
+After explicit invalidation              5.38 ms (100 x 8-byte reads)
+```

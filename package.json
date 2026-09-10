@@ -1,0 +1,11 @@
+{
+	"name": "archil-cache-expiry-repro",
+	"private": true,
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"dependencies": {
+		"@archildata/native": "0.8.35"
+	}
+}
